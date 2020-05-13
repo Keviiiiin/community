@@ -26,7 +26,7 @@ public class DiscussPostService {
      * @param limit
      * @return
      */
-    List<DiscussPost> selectDiscussPosts(int userId, int offset, int limit){
+    public List<DiscussPost> findDiscussPosts(int userId, int offset, int limit){
         return discussPostMapper.selectDiscussPosts(userId,offset,limit);
     }
 
@@ -35,7 +35,7 @@ public class DiscussPostService {
      * @param userId
      * @return
      */
-    int selectDiscussPostRows(@Param("userId") int userId){
+    public int findDiscussPostRows(@Param("userId") int userId){
         return discussPostMapper.selectDiscussPostRows(userId);
     }
 }
