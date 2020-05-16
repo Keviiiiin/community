@@ -2,6 +2,7 @@ package com.icckevin.community.service;
 
 import com.icckevin.community.dao.UserMapper;
 import com.icckevin.community.entity.User;
+import com.icckevin.community.utils.ActivationConstant;
 import com.icckevin.community.utils.CommunityUtil;
 import com.icckevin.community.utils.MailClient;
 import org.apache.commons.lang3.StringUtils;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -24,7 +26,7 @@ import java.util.Random;
  * @create: 2020-05-13 21:11
  **/
 @Service
-public class UserService {
+public class UserService implements ActivationConstant {
     @Autowired
     private UserMapper userMapper;
 
@@ -84,6 +86,7 @@ public class UserService {
         userMapper.insertUser(user);
 
         Context context = new Context();
+        // context里存的值会最终传给页面
         context.setVariable("username",user.getUsername());
         // http://localhost:8080/community/activation/101/code
         String url = domain + contextPath + "/activation/" + user.getId() + "/" + user.getActivationCode();
@@ -91,5 +94,18 @@ public class UserService {
         mailClient.sendMail(user.getEmail(),"牛客网激活账号",templateEngine.process("/mail/activation",context));
 
         return map;
+    }
+
+    public int activation(int userId,String code){
+        User user = userMapper.selectById(userId);
+        String activationCode = user.getActivationCode();
+        if(user.getStatus() == 1)
+            return ACTIVATION_REPEAT;
+        else if(activationCode.equals(code)){
+            userMapper.updateStatus(userId,1);
+            return ACTIVATION_SUCCESS;
+        }
+        else
+            return ACTIVATION_FAILURE;
     }
 }
