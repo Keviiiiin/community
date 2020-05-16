@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -32,6 +34,11 @@ public class UserService {
     @Value("${community.path.domain}")
     private String domain;
 
+    @Value("${server.servlet.context-path}")
+    private String contextPath;
+
+    @Autowired
+    private TemplateEngine templateEngine;
 
     public User selectById(int id){
         return userMapper.selectById(id);
@@ -75,6 +82,13 @@ public class UserService {
         user.setHeaderUrl(String.format("http://images.nowcoder.com/head/%dt.png", new Random().nextInt(1000)));
         user.setCreateTime(new Date());
         userMapper.insertUser(user);
+
+        Context context = new Context();
+        context.setVariable("username",user.getUsername());
+        // http://localhost:8080/community/activation/101/code
+        String url = domain + contextPath + "/activation/" + user.getId() + "/" + user.getActivationCode();
+        context.setVariable("url",url);
+        mailClient.sendMail(user.getEmail(),"牛客网激活账号",templateEngine.process("/mail/activation",context));
 
         return map;
     }
