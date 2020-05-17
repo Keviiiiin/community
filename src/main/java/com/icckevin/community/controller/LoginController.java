@@ -71,7 +71,7 @@ public class LoginController implements ActivationConstant {
         int result = userService.activation(userId, code);
         if (result == ACTIVATION_SUCCESS) {
             model.addAttribute("msg", "激活成功,您的账号已经可以正常使用了!");
-            model.addAttribute("target", "/site/login");
+            model.addAttribute("target", "/login");
         } else if (result == ACTIVATION_REPEAT) {
             model.addAttribute("msg", "无效操作,该账号已经激活过了!");
             model.addAttribute("target", "/index");
