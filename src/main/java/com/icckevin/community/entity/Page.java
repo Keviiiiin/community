@@ -14,6 +14,7 @@ public class Page implements Serializable {
     private int limit = 10;
     // 当前页码
     private int current = 1;
+    // 当前页面的地址
     private String path;
 
     /**
