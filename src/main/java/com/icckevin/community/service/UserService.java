@@ -160,4 +160,8 @@ public class UserService implements ActivationConstant {
         map.put("ticket",loginTicket.getTicket());
         return map;
     }
+
+    public void logout(String ticket) {
+        loginTicketMapper.updateStatus(ticket, 1);
+    }
 }

@@ -20,7 +20,7 @@ public interface LoginTicketMapper {
     LoginTicket selectByTicker(String ticket);
 
     @Update({
-            "update login_ticket set status=#{status}"
+            "update login_ticket set status=#{status} where ticket=#{ticket}"
     })
     int updateStatus(String ticket, int status);
 }
