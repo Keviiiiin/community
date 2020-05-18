@@ -1,6 +1,8 @@
 package com.icckevin.community.service;
 
+import com.icckevin.community.dao.LoginTicketMapper;
 import com.icckevin.community.dao.UserMapper;
+import com.icckevin.community.entity.LoginTicket;
 import com.icckevin.community.entity.User;
 import com.icckevin.community.utils.ActivationConstant;
 import com.icckevin.community.utils.CommunityUtil;
@@ -8,6 +10,7 @@ import com.icckevin.community.utils.MailClient;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringApplication;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
@@ -15,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpSession;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,6 +46,9 @@ public class UserService implements ActivationConstant {
 
     @Autowired
     private TemplateEngine templateEngine;
+
+    @Autowired
+    private LoginTicketMapper loginTicketMapper;
 
     public User selectById(int id){
         return userMapper.selectById(id);
@@ -107,5 +115,49 @@ public class UserService implements ActivationConstant {
         }
         else
             return ACTIVATION_FAILURE;
+    }
+
+    public Map<String,Object> login(String username, String password, int expiredSeconds){
+        Map<String,Object> map = new HashMap<>();
+        if (StringUtils.isBlank(username)) {
+            map.put("usernameMsg", "账号不能为空!");
+            return map;
+        }
+        if (StringUtils.isBlank(password)) {
+            map.put("passwordMsg", "密码不能为空!");
+            return map;
+        }
+        // 验证码的判断在controller里
+//        if (StringUtils.isBlank(code)) {
+//            map.put("codeMsg", "验证码不能为空!");
+//            return map;
+//        }
+        User user = userMapper.selectByName(username);
+        if(user == null){
+            map.put("usernameMsg", "用户不存在！");
+            return map;
+        }
+        // 验证状态
+        if (user.getStatus() == 0) {
+            map.put("usernameMsg", "该账号未激活!");
+            return map;
+        }
+
+        password = CommunityUtil.md5(password + user.getSalt());
+        if(!user.getPassword().equals(password)){
+            map.put("passwordMsg", "密码错误！");
+            return map;
+        }
+
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUserId(user.getId());
+        loginTicket.setStatus(0);
+        loginTicket.setTicket(CommunityUtil.generateUUID());
+        // 过期的时间
+        loginTicket.setExpired(new Date(System.currentTimeMillis() + expiredSeconds * 1000));
+        loginTicketMapper.insertTicket(loginTicket);
+
+        map.put("ticket",loginTicket.getTicket());
+        return map;
     }
 }

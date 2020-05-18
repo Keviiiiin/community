@@ -4,10 +4,13 @@ import com.google.code.kaptcha.Producer;
 import com.icckevin.community.entity.User;
 import com.icckevin.community.service.UserService;
 import com.icckevin.community.utils.ActivationConstant;
+import com.icckevin.community.utils.SecondsConstant;
 import com.sun.org.apache.xpath.internal.operations.Mod;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,11 +19,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.imageio.ImageIO;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.HttpCookie;
 import java.util.Map;
 
 /**
@@ -29,7 +35,7 @@ import java.util.Map;
  * @create: 2020-05-16 10:31
  **/
 @Controller
-public class LoginController implements ActivationConstant {
+public class LoginController implements ActivationConstant, SecondsConstant {
 
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
@@ -38,6 +44,9 @@ public class LoginController implements ActivationConstant {
 
     @Autowired
     private Producer kaptchaProducer;
+
+    @Value("${server.servlet.context-path}")
+    private String contextPath;
 
     @RequestMapping(value = "/register",method = RequestMethod.GET)
     public String getRegisterPage(){
@@ -105,6 +114,31 @@ public class LoginController implements ActivationConstant {
             ImageIO.write(image, "png", os);
         } catch (IOException e) {
             logger.error("响应验证码失败:" + e.getMessage());
+        }
+    }
+
+    @RequestMapping(value = "/login",method = RequestMethod.POST)
+    public String login(Model model, HttpSession session,HttpServletResponse response,
+                        String username, String password, String code, boolean remember){
+
+        String kaptcha =(String) session.getAttribute("kaptcha");
+        if(StringUtils.isBlank(kaptcha) || StringUtils.isBlank(code) || !kaptcha.equalsIgnoreCase(code)){
+            model.addAttribute("codeMsg","验证码有误！");
+            return "/site/login";
+        }
+        int seconds = remember ? REMEMBER_EXPIRED_SECONDS : DEFAULT_EXPIRED_SECONDS;
+        Map<String, Object> map = userService.login(username, password, seconds);
+        if(!map.containsKey("ticket")){
+            model.addAttribute("usernameMsg",map.get("usernameMsg"));
+            model.addAttribute("passwordMsg",map.get("passwordMsg"));
+            return "/site/login";
+        }
+        else {
+            Cookie cookie = new Cookie("ticket",(String)map.get("ticket"));
+            cookie.setMaxAge(seconds);
+            cookie.setPath(contextPath);
+            response.addCookie(cookie);
+            return "redirect:/index";
         }
     }
 
