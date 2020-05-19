@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import javax.security.auth.spi.LoginModule;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpSession;
 import java.util.Date;
@@ -163,5 +164,9 @@ public class UserService implements ActivationConstant {
 
     public void logout(String ticket) {
         loginTicketMapper.updateStatus(ticket, 1);
+    }
+
+    public LoginTicket findByTicket(String ticket){
+        return loginTicketMapper.selectByTicker(ticket);
     }
 }
