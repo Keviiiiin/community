@@ -49,13 +49,22 @@ public class LoginTicketInterceptor implements HandlerInterceptor {
             LoginTicket loginTicket = userService.findByTicket(ticket);
             if(loginTicket.getStatus() == 0 && loginTicket.getExpired().after(new Date())){
                 User user = userService.selectById(loginTicket.getUserId());
-                // 考虑多线程环境
+                // 考虑多线程环境，将user存入当前线程，只要请求未处理完，线程就一直存在
                 hostHolder.setUser(user);
             }
         }
         return true;
     }
 
+    /**
+     * 在controller处理完请求之后，往model中添加user的信息
+     *
+     * @param request
+     * @param response
+     * @param handler
+     * @param modelAndView
+     * @throws Exception
+     */
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
         User user = hostHolder.getUser();
@@ -64,6 +73,15 @@ public class LoginTicketInterceptor implements HandlerInterceptor {
         }
     }
 
+    /**
+     * 在模板引擎之后执行
+     *
+     * @param request
+     * @param response
+     * @param handler
+     * @param ex
+     * @throws Exception
+     */
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
         hostHolder.clear();

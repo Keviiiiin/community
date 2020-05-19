@@ -4,6 +4,8 @@ import com.icckevin.community.entity.User;
 import org.springframework.stereotype.Component;
 
 /**
+ * 简单的封装了ThreadLocal
+ *
  * @description:
  * @author: iccKevin
  * @create: 2020-05-19 11:32
