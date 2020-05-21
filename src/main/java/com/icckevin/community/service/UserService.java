@@ -169,4 +169,14 @@ public class UserService implements ActivationConstant {
     public LoginTicket findByTicket(String ticket){
         return loginTicketMapper.selectByTicker(ticket);
     }
+
+    /**
+     * 更新头像地址
+     * @param userId
+     * @param headerUrl
+     * @return
+     */
+    public int updateHeader(int userId, String headerUrl) {
+        return userMapper.updateHeader(userId, headerUrl);
+    }
 }
