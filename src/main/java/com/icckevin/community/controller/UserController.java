@@ -1,5 +1,6 @@
 package com.icckevin.community.controller;
 
+import com.icckevin.community.annotation.LoginRequired;
 import com.icckevin.community.entity.User;
 import com.icckevin.community.service.UserService;
 import com.icckevin.community.utils.CommunityUtil;
@@ -51,11 +52,13 @@ public class UserController {
     @Value("${server.servlet.context-path}")
     private String contextPath;
 
+    @LoginRequired
     @RequestMapping(value = "/setting",method = RequestMethod.GET)
     public String getSettingPage(){
         return "/site/setting";
     }
 
+    @LoginRequired
     @RequestMapping(value = "/upload",method = RequestMethod.POST)
     public String uploadHeader(MultipartFile headerImage,Model model){
         if(headerImage == null){
@@ -113,6 +116,7 @@ public class UserController {
         }
     }
 
+    @LoginRequired
     @RequestMapping(value = "/password",method = RequestMethod.POST)
     public String uploadPassword(Model model, String oldPassword, String newPassword, String confirmPassword,
                                  @CookieValue("ticket") String ticket){
