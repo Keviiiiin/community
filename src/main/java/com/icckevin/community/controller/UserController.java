@@ -4,6 +4,7 @@ import com.icckevin.community.entity.User;
 import com.icckevin.community.service.UserService;
 import com.icckevin.community.utils.CommunityUtil;
 import com.icckevin.community.utils.HostHolder;
+import com.sun.org.apache.xpath.internal.operations.Mod;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,12 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -108,5 +111,40 @@ public class UserController {
         } catch (IOException e) {
             logger.error("读取头像失败: " + e.getMessage());
         }
+    }
+
+    @RequestMapping(value = "/password",method = RequestMethod.POST)
+    public String uploadPassword(Model model, String oldPassword, String newPassword, String confirmPassword,
+                                 @CookieValue("ticket") String ticket){
+//  输入框为空的判断交给前端
+        //        if(StringUtils.isBlank(oldPassword)){
+//            model.addAttribute("oldError","原密码不能为空!");
+//        }
+//        else if(StringUtils.isBlank(newPassword) ) {
+//            model.addAttribute("newError","新密码不能为空!");
+//        }
+        if(!newPassword.equals(confirmPassword)){
+            model.addAttribute("confirmError","两次输入不一致！");
+            return "/site/setting";
+        }
+        else {
+            User user = hostHolder.getUser();
+            String password = user.getPassword();
+            if (!password.equals(CommunityUtil.md5(oldPassword + user.getSalt()))) {
+                model.addAttribute("oldError", "原密码不正确!");
+                return "/site/setting";
+            }
+            else if(oldPassword.equals(newPassword)){
+                model.addAttribute("newError","新密码不能和原密码相同!");
+                return "/site/setting";
+            }
+            else {
+                userService.updatePassword(user.getId(),CommunityUtil.md5(newPassword + user.getSalt()));
+                userService.logout(ticket);
+                model.addAttribute("msg","密码修改成功，请重新登录!");
+                model.addAttribute("target","/login");
+            }
+        }
+        return "/site/operate-result";
     }
 }
