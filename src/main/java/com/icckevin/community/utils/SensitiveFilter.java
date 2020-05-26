@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -26,7 +27,7 @@ public class SensitiveFilter {
 
     // 前缀树
     private class TrieNode{
-        private Map<Character,TrieNode> subNode;
+        private Map<Character,TrieNode> subNode = new HashMap<>();
         private boolean isEnd;
 
         public TrieNode getSubNode(Character c) {
