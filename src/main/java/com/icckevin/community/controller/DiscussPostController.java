@@ -3,12 +3,15 @@ package com.icckevin.community.controller;
 import com.icckevin.community.entity.DiscussPost;
 import com.icckevin.community.entity.User;
 import com.icckevin.community.service.DiscussPostService;
+import com.icckevin.community.service.UserService;
 import com.icckevin.community.utils.CommunityUtil;
 import com.icckevin.community.utils.HostHolder;
 import com.icckevin.community.utils.SensitiveFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -26,6 +29,9 @@ public class DiscussPostController {
 
     @Autowired
     private DiscussPostService discussPostService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private SensitiveFilter sensitiveFilter;
@@ -53,5 +59,18 @@ public class DiscussPostController {
         discussPostService.insertDiscussPost(discussPost);
 
         return CommunityUtil.getJSONString(0,"发布成功！");
+    }
+
+    @RequestMapping(value = "/detail/{discussPostId}",method = RequestMethod.GET)
+    public String getDiscussPost(@PathVariable("discussPostId") int discussPostId, Model model){
+        // 帖子
+        DiscussPost discussPost = discussPostService.selectDiscussPostById(discussPostId);
+        model.addAttribute("post",discussPost);
+
+        // 作者
+        User user = userService.selectById(discussPost.getUserId());
+        model.addAttribute("user",user);
+
+        return "/site/discuss-detail";
     }
 }
