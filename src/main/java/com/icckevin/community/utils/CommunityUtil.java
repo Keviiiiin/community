@@ -27,8 +27,11 @@ public class CommunityUtil {
         return DigestUtils.md5DigestAsHex(key.getBytes());
     }
 
+    // 将给定的数据封装成json字符串
     public static String getJSONString(int code, String msg, Map<String, Object> map) {
+        // 用来封装数据的对象
         JSONObject json = new JSONObject();
+
         json.put("code", code);
         json.put("msg", msg);
         if (map != null) {
@@ -36,6 +39,7 @@ public class CommunityUtil {
                 json.put(key, map.get(key));
             }
         }
+
         return json.toJSONString();
     }
 
