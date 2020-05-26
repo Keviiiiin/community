@@ -6,6 +6,7 @@ import com.icckevin.community.service.DiscussPostService;
 import com.icckevin.community.utils.CommunityUtil;
 import com.icckevin.community.utils.HostHolder;
 import com.icckevin.community.utils.SensitiveFilter;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,6 +39,9 @@ public class DiscussPostController {
         User user = hostHolder.getUser();
         if(user == null)
             return CommunityUtil.getJSONString(403,"您还没有登录！");
+
+        if(StringUtils.isBlank(title) || StringUtils.isBlank(content))
+            return CommunityUtil.getJSONString(404,"请输入有效的字符！");
 
         DiscussPost discussPost = new DiscussPost();
 
