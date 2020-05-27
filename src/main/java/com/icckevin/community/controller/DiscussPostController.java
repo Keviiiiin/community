@@ -1,10 +1,14 @@
 package com.icckevin.community.controller;
 
+import com.icckevin.community.entity.Comment;
 import com.icckevin.community.entity.DiscussPost;
+import com.icckevin.community.entity.Page;
 import com.icckevin.community.entity.User;
+import com.icckevin.community.service.CommentService;
 import com.icckevin.community.service.DiscussPostService;
 import com.icckevin.community.service.UserService;
 import com.icckevin.community.utils.CommunityUtil;
+import com.icckevin.community.utils.EntityTypeConstant;
 import com.icckevin.community.utils.HostHolder;
 import com.icckevin.community.utils.SensitiveFilter;
 import org.apache.commons.lang3.StringUtils;
@@ -16,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.Date;
+import java.util.*;
 
 /**
  * @description: 处理帖子
@@ -25,13 +29,16 @@ import java.util.Date;
  **/
 @Controller
 @RequestMapping(value = "/discuss")
-public class DiscussPostController {
+public class DiscussPostController implements EntityTypeConstant {
 
     @Autowired
     private DiscussPostService discussPostService;
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private CommentService commentService;
 
     @Autowired
     private SensitiveFilter sensitiveFilter;
@@ -62,7 +69,7 @@ public class DiscussPostController {
     }
 
     @RequestMapping(value = "/detail/{discussPostId}",method = RequestMethod.GET)
-    public String getDiscussPost(@PathVariable("discussPostId") int discussPostId, Model model){
+    public String getDiscussPost(@PathVariable("discussPostId") int discussPostId, Model model, Page page){
         // 帖子
         DiscussPost discussPost = discussPostService.selectDiscussPostById(discussPostId);
         model.addAttribute("post",discussPost);
@@ -71,6 +78,54 @@ public class DiscussPostController {
         User user = userService.selectById(discussPost.getUserId());
         model.addAttribute("user",user);
 
+        page.setLimit(5);
+        // 总行数直接使用当前帖子的评论数量属性
+        page.setRows(discussPost.getCommentCount());
+        page.setPath("/discuss/detail/" + discussPostId);
+
+        List<Comment> commentList = commentService.findCommentsByEntity(
+                ENTITY_TYPE_POST, discussPostId, page.getStartRow(), page.getLimit());
+        // 评论VO列表
+        List<Map<String, Object>> commentVoList = new ArrayList<>();
+        if (commentList != null) {
+            for (Comment comment : commentList) {
+                // 评论VO
+                Map<String, Object> commentVo = new HashMap<>();
+                // 评论
+                commentVo.put("comment", comment);
+                // 作者
+                commentVo.put("user", userService.selectById(comment.getUserId()));
+
+                // 回复列表
+                List<Comment> replyList = commentService.findCommentsByEntity(
+                        ENTITY_TYPE_COMMENT, comment.getId(), 0, Integer.MAX_VALUE);
+                // 回复VO列表
+                List<Map<String, Object>> replyVoList = new ArrayList<>();
+                if (replyList != null) {
+                    for (Comment reply : replyList) {
+                        Map<String, Object> replyVo = new HashMap<>();
+                        // 回复
+                        replyVo.put("reply", reply);
+                        // 作者
+                        replyVo.put("user", userService.selectById(reply.getUserId()));
+                        // 回复目标，判断是普通回复还是给特定用户的回复
+                        User target = reply.getTargetId() == 0 ? null : userService.selectById(reply.getTargetId());
+                        replyVo.put("target", target);
+
+                        replyVoList.add(replyVo);
+                    }
+                }
+                commentVo.put("replys", replyVoList);
+
+                // 回复数量
+                int replyCount = commentService.findCommentCount(ENTITY_TYPE_COMMENT, comment.getId());
+                commentVo.put("replyCount", replyCount);
+
+                commentVoList.add(commentVo);
+            }
+        }
+
+        model.addAttribute("comments", commentVoList);
         return "/site/discuss-detail";
     }
 }
