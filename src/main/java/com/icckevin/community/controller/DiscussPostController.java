@@ -80,12 +80,12 @@ public class DiscussPostController implements EntityTypeConstant {
 
         page.setLimit(5);
         // 总行数直接使用当前帖子的评论数量属性
-        page.setRows(discussPost.getCommentCount());
         page.setPath("/discuss/detail/" + discussPostId);
+        page.setRows(discussPost.getCommentCount());
 
         List<Comment> commentList = commentService.findCommentsByEntity(
-                ENTITY_TYPE_POST, discussPostId, page.getStartRow(), page.getLimit());
-        // 评论VO列表
+                ENTITY_TYPE_POST, discussPost.getId(), page.getStartRow(), page.getLimit());
+        // 评论VO列表，封装了评论、用户、回复、回复数量，即[{comment=...,user=...,reply=...,count=...},{...},...]
         List<Map<String, Object>> commentVoList = new ArrayList<>();
         if (commentList != null) {
             for (Comment comment : commentList) {
@@ -124,7 +124,7 @@ public class DiscussPostController implements EntityTypeConstant {
                 commentVoList.add(commentVo);
             }
         }
-
+//        System.out.println(commentVoList);
         model.addAttribute("comments", commentVoList);
         return "/site/discuss-detail";
     }

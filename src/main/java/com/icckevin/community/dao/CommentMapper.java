@@ -1,9 +1,11 @@
 package com.icckevin.community.dao;
 
 import com.icckevin.community.entity.Comment;
+import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;
 
+@Mapper
 public interface CommentMapper {
 
     /**
@@ -18,7 +20,7 @@ public interface CommentMapper {
     List<Comment> selectCommentsByEntity(int entityType, int entityId, int offset, int limit);
 
     /**
-     * 查询回复的条数
+     * 查询评论/回复的条数
      * @param entityType
      * @param entityId
      * @return
