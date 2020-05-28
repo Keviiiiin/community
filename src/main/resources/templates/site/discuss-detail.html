@@ -105,7 +105,7 @@
 				<!-- 回帖数量 -->
 				<div class="row">
 					<div class="col-8">
-						<h6><b class="square"></b> <i th:text="${map.post.commentCount}">30</i>条回帖</h6>
+						<h6><b class="square"></b> <i th:text="${post.commentCount}">30</i>条回帖</h6>
 					</div>
 					<div class="col-4 text-right">
 						<a href="#replyform" class="btn btn-primary btn-sm">&nbsp;&nbsp;回&nbsp;&nbsp;帖&nbsp;&nbsp;</a>
@@ -126,7 +126,7 @@
 									<i th:text="${page.startRow + cvoStat.count}">1</i>#
 								</span>
 							</div>
-							<div class="mt-2">
+							<div class="mt-2" th:text="${cvo.comment.content}">
 								这开课时间是不是有点晚啊。。。
 							</div>
 							<div class="mt-4 text-muted font-size-12">
@@ -183,8 +183,8 @@
 					</li>
 				</ul>
 				<!-- 分页 -->
-				<nav class="mt-5">
-					<ul class="pagination justify-content-center" th:replace="index::pagination">
+				<nav class="mt-5" th:replace="index::pagination">
+					<ul class="pagination justify-content-center">
 						<li class="page-item"><a class="page-link" href="#">首页</a></li>
 						<li class="page-item disabled"><a class="page-link" href="#">上一页</a></li>
 						<li class="page-item active"><a class="page-link" href="#">1</a></li>
