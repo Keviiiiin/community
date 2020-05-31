@@ -46,6 +46,7 @@ public class DiscussPostController implements EntityTypeConstant {
     @Autowired
     private HostHolder hostHolder;
 
+    //发布一条帖子
     @RequestMapping(value = "/add",method = RequestMethod.POST)
     @ResponseBody
     public String addDiscussPost(String title,String content){

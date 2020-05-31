@@ -1,8 +1,10 @@
 package com.icckevin.community;
 
+import com.icckevin.community.dao.CommentMapper;
 import com.icckevin.community.dao.DiscussPostMapper;
 import com.icckevin.community.dao.LoginTicketMapper;
 import com.icckevin.community.dao.UserMapper;
+import com.icckevin.community.entity.Comment;
 import com.icckevin.community.entity.DiscussPost;
 import com.icckevin.community.entity.LoginTicket;
 import com.icckevin.community.entity.User;
@@ -35,6 +37,9 @@ public class MapperTests {
 
     @Autowired
     private LoginTicketMapper loginTicketMapper;
+
+    @Autowired
+    private CommentMapper commentMapper;
 
     @Test
     public void testSelectById(){
@@ -94,5 +99,19 @@ public class MapperTests {
 
         userMapper.insertUser(user);
         System.out.println(user.getId());
+    }
+
+    @Test
+    public void testCommentMapper() {
+        Comment comment = new Comment();
+//        comment.setId(1);
+        comment.setContent("123");
+        comment.setCreateTime(new Date());
+        comment.setEntityId(237);
+        comment.setEntityType(1);
+        comment.setStatus(0);
+        comment.setTargetId(0);
+        comment.setUserId(112);
+        commentMapper.insertComment(comment);
     }
 }
