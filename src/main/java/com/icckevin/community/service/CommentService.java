@@ -3,6 +3,7 @@ package com.icckevin.community.service;
 import com.icckevin.community.dao.CommentMapper;
 import com.icckevin.community.entity.Comment;
 import com.icckevin.community.entity.DiscussPost;
+import com.icckevin.community.utils.EntityTypeConstant;
 import com.icckevin.community.utils.SensitiveFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,7 @@ import java.util.List;
  * @create: 2020-05-27 17:21
  **/
 @Service
-public class CommentService {
+public class CommentService implements EntityTypeConstant {
 
     @Autowired
     private CommentMapper commentMapper;
@@ -43,6 +44,11 @@ public class CommentService {
 
         comment.setContent(sensitiveFilter.filter(HtmlUtils.htmlEscape(comment.getContent())));
         int rows = commentMapper.insertComment(comment);
+
+        if(comment.getEntityType() == EntityTypeConstant.ENTITY_TYPE_POST){
+            int count = commentMapper.selectCountByEntity(comment.getEntityType(), comment.getEntityId());
+            discussPostService.updateCommentCount(comment.getEntityId(),count);
+        }
 
         return rows;
     }
