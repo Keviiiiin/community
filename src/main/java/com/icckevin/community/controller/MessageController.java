@@ -73,7 +73,7 @@ public class MessageController {
         return "/site/letter";
     }
 
-    @RequestMapping("/detail/{conversationId}")
+    @RequestMapping(value = "/detail/{conversationId}",method = RequestMethod.GET)
     public String getConversation(@PathVariable("conversationId") String conversationId,Model model,Page page){
         int userId = hostHolder.getUser().getId();
 
@@ -88,16 +88,22 @@ public class MessageController {
             for (Message message : messages) {
                 Map<String,Object> map = new HashMap<>();
 
-                int selectId = message.getFromId() == userId ? message.getToId():message.getFromId();
-                User target = userService.selectById(selectId);
-
-                map.put("target",target);
+                map.put("fromUser",userService.selectById(message.getFromId()));
                 map.put("message",message);
 
                 list.add(map);
             }
         }
-        model.addAttribute("conversations",list);
+        model.addAttribute("letters",list);
+
+        //只有一个targetId,我们可以从conversationId中截取
+        String[] s = conversationId.split("_");
+        String tId = s[0].equals(userId+"") ? s[1] : s[0];
+        int targetId = Integer.parseInt(tId);
+        User target = userService.selectById(targetId);
+
+        model.addAttribute("target",target);
+
         return "/site/letter-detail";
     }
 }
