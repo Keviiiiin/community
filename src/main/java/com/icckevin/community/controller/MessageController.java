@@ -47,13 +47,13 @@ public class MessageController {
         page.setPath("/message");
 
         List<Map<String,Object>> list = new ArrayList<>();
-        Map<String,Object> map = new HashMap<>();
         List<Message> messages = messageService.selectMessage(userId, page.getStartRow(), page.getLimit());
 
         if(messages!=null) {
             for (Message message : messages) {
+                Map<String,Object> map = new HashMap<>();
                 // 查询与用户对话的人
-                int selectId = message.getFromId() == userId?message.getToId():message.getFromId();
+                int selectId = message.getFromId() == userId ? message.getToId():message.getFromId();
                 User target = userService.selectById(selectId);
 
                 String conversationId = message.getConversationId();
