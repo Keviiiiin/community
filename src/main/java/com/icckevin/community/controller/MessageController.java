@@ -34,33 +34,49 @@ public class MessageController {
     @Autowired
     private UserService userService;
 
-    @RequestMapping(value = "/{userId}",method = RequestMethod.GET)
-    public String getMessage(@PathVariable("userId")int userId, Model model, Page page){
+    // 获取用户
+    @Autowired
+    private HostHolder hostHolder;
 
+    @RequestMapping(method = RequestMethod.GET)
+    public String getMessage(Model model, Page page){
+        int userId = hostHolder.getUser().getId();
+
+        page.setLimit(5);
         page.setRows(messageService.selectMessageCount(userId));
         page.setPath("/message");
 
         List<Map<String,Object>> list = new ArrayList<>();
         Map<String,Object> map = new HashMap<>();
-        List<Message> messages = messageService.selectMessage(userId, 0, page.getLimit());
-        for (Message message : messages) {
-            int fromId = message.getFromId();
-            User user = userService.selectById(fromId);
+        List<Message> messages = messageService.selectMessage(userId, page.getStartRow(), page.getLimit());
 
-            String conversationId = Math.min(fromId,userId) + "_" + Math.max(fromId,userId);
-            int unread = messageService.selectUnreadMessageCount(userId,conversationId);
+        if(messages!=null) {
+            for (Message message : messages) {
+                // 查询与用户对话的人
+                int selectId = message.getFromId() == userId?message.getToId():message.getFromId();
+                User target = userService.selectById(selectId);
 
-            map.put("user",user);
-            map.put("message",message);
-            map.put("unread",unread);
-            list.add(map);
+                String conversationId = message.getConversationId();
+                int unread = messageService.selectUnreadMessageCount(userId, conversationId);
+                int total = messageService.selectConversationCount(conversationId);
+
+                map.put("target", target);
+                map.put("unreadConversation", unread);
+                map.put("total", total);
+                map.put("message", message);
+                list.add(map);
+            }
         }
-        model.addAttribute("list",list);
+        model.addAttribute("conversations",list);
+
+        // 查询所有未读数量
+        int unreadMessage = messageService.selectUnreadMessageCount(userId,null);
+        model.addAttribute("unreadMessage",unreadMessage);
         return "/site/letter";
     }
 
-    @RequestMapping("/detail")
-    public String getConversation(@PathVariable("userId")int userId,Model model,Page page){
-        page.setRows(messageService.selectConversationCount());
-    }
+//    @RequestMapping("/detail")
+//    public String getConversation(@PathVariable("userId")int userId,Model model,Page page){
+////        page.setRows(messageService.selectConversationCount());
+//    }
 }

@@ -41,7 +41,7 @@ public interface MessageMapper {
     int selectConversationCount(String conversationId);
 
     /**
-     * 查询未读私信/会话总数
+     * 查询未读私信/会话总数，conversationId为空时表示查询未读私信
      * @param userId
      * @param conversationId
      * @return
