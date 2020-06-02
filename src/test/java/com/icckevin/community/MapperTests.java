@@ -1,13 +1,7 @@
 package com.icckevin.community;
 
-import com.icckevin.community.dao.CommentMapper;
-import com.icckevin.community.dao.DiscussPostMapper;
-import com.icckevin.community.dao.LoginTicketMapper;
-import com.icckevin.community.dao.UserMapper;
-import com.icckevin.community.entity.Comment;
-import com.icckevin.community.entity.DiscussPost;
-import com.icckevin.community.entity.LoginTicket;
-import com.icckevin.community.entity.User;
+import com.icckevin.community.dao.*;
+import com.icckevin.community.entity.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +34,9 @@ public class MapperTests {
 
     @Autowired
     private CommentMapper commentMapper;
+
+    @Autowired
+    private MessageMapper messageMapper;
 
     @Test
     public void testSelectById(){
@@ -113,5 +110,30 @@ public class MapperTests {
         comment.setTargetId(0);
         comment.setUserId(112);
         commentMapper.insertComment(comment);
+    }
+
+    @Test
+    public void testMessageMapper() {
+//        int i = messageMapper.selectMessageCount(114);
+//        System.out.println(i);
+
+        List<Message> list = messageMapper.selectMessage(111, 0, 20);
+        for (Message message : list) {
+            System.out.println(message);
+        }
+
+        int count = messageMapper.selectMessageCount(111);
+        System.out.println(count);
+
+        list = messageMapper.selectConversation("111_112", 0, 10);
+        for (Message message : list) {
+            System.out.println(message);
+        }
+
+        count = messageMapper.selectConversationCount("111_112");
+        System.out.println(count);
+
+        count = messageMapper.selectUnreadMessageCount(131, "111_131");
+        System.out.println(count);
     }
 }
