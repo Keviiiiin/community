@@ -14,10 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @description:
@@ -51,6 +48,7 @@ public class MessageController {
 
         if(messages!=null) {
             for (Message message : messages) {
+                // 注意：每次都要创建一个新的map，否则先插入的值会被后插入的修改
                 Map<String,Object> map = new HashMap<>();
                 // 查询与用户对话的人
                 int selectId = message.getFromId() == userId ? message.getToId():message.getFromId();
@@ -75,8 +73,31 @@ public class MessageController {
         return "/site/letter";
     }
 
-//    @RequestMapping("/detail")
-//    public String getConversation(@PathVariable("userId")int userId,Model model,Page page){
-////        page.setRows(messageService.selectConversationCount());
-//    }
+    @RequestMapping("/detail/{conversationId}")
+    public String getConversation(@PathVariable("conversationId") String conversationId,Model model,Page page){
+        int userId = hostHolder.getUser().getId();
+
+        page.setLimit(5);
+        page.setPath("/message/detail/"+conversationId);
+        page.setRows(messageService.selectConversationCount(conversationId));
+
+        List<Map<String,Object>> list = new ArrayList<>();
+        List<Message> messages = messageService.selectConversation(conversationId,page.getStartRow(),page.getLimit());
+
+        if(messages!=null){
+            for (Message message : messages) {
+                Map<String,Object> map = new HashMap<>();
+
+                int selectId = message.getFromId() == userId ? message.getToId():message.getFromId();
+                User target = userService.selectById(selectId);
+
+                map.put("target",target);
+                map.put("message",message);
+
+                list.add(map);
+            }
+        }
+        model.addAttribute("conversations",list);
+        return "/site/letter-detail";
+    }
 }
