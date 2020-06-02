@@ -85,6 +85,7 @@ public class MessageController {
 
         List<Map<String,Object>> list = new ArrayList<>();
         List<Message> messages = messageService.selectConversation(conversationId,page.getStartRow(),page.getLimit());
+        List<Integer> ids = new ArrayList<>();
 
         if(messages!=null){
             for (Message message : messages) {
@@ -94,6 +95,11 @@ public class MessageController {
                 map.put("message",message);
 
                 list.add(map);
+
+                // 找出私信中的未读私信
+                if(userId == message.getToId() && message.getStatus() == 0){
+                    ids.add(message.getId());
+                }
             }
         }
         model.addAttribute("letters",list);
@@ -105,6 +111,10 @@ public class MessageController {
         User target = userService.selectById(targetId);
 
         model.addAttribute("target",target);
+
+        if(!ids.isEmpty()){
+            messageService.readMessage(ids);
+        }
 
         return "/site/letter-detail";
     }
