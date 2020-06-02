@@ -6,6 +6,7 @@ import com.icckevin.community.entity.Page;
 import com.icckevin.community.entity.User;
 import com.icckevin.community.service.MessageService;
 import com.icckevin.community.service.UserService;
+import com.icckevin.community.utils.CommunityUtil;
 import com.icckevin.community.utils.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.*;
 
@@ -21,7 +23,7 @@ import java.util.*;
  * @author: iccKevin
  * @create: 2020-06-02 09:50
  **/
-@RequestMapping(value = "/message",method = RequestMethod.GET)
+@RequestMapping(value = "/message")
 @Controller
 public class MessageController {
 
@@ -105,5 +107,26 @@ public class MessageController {
         model.addAttribute("target",target);
 
         return "/site/letter-detail";
+    }
+
+    @RequestMapping(value = "/send",method = RequestMethod.POST)
+    @ResponseBody
+    public String sendMessage(String toName,String content){
+        User targetUser = userService.selectByName(toName);
+        if(targetUser == null){
+            return CommunityUtil.getJSONString(0,"该用户不存在!");
+        }
+
+        Message message = new Message();
+        message.setContent(content);
+        message.setCreateTime(new Date());
+        message.setFromId(hostHolder.getUser().getId());
+        message.setToId(targetUser.getId());
+        String conversationId = Math.min(message.getFromId(),message.getToId()) + "_"
+                + Math.max(message.getFromId(),message.getToId());
+        message.setConversationId(conversationId);
+        messageService.sendMessage(message);
+
+        return CommunityUtil.getJSONString(1);
     }
 }

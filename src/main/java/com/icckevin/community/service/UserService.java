@@ -170,17 +170,16 @@ public class UserService implements ActivationConstant {
         return loginTicketMapper.selectByTicker(ticket);
     }
 
-    /**
-     * 更新头像地址
-     * @param userId
-     * @param headerUrl
-     * @return
-     */
+
     public int updateHeader(int userId, String headerUrl) {
         return userMapper.updateHeader(userId, headerUrl);
     }
 
     public int updatePassword(int userId,String password){
         return userMapper.updatePassword(userId,password);
+    }
+
+    public User selectByName(String username){
+        return userMapper.selectByName(username);
     }
 }
