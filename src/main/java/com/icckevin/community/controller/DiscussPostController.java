@@ -6,6 +6,7 @@ import com.icckevin.community.entity.Page;
 import com.icckevin.community.entity.User;
 import com.icckevin.community.service.CommentService;
 import com.icckevin.community.service.DiscussPostService;
+import com.icckevin.community.service.LikeService;
 import com.icckevin.community.service.UserService;
 import com.icckevin.community.utils.CommunityUtil;
 import com.icckevin.community.utils.EntityTypeConstant;
@@ -44,6 +45,9 @@ public class DiscussPostController implements EntityTypeConstant {
     private SensitiveFilter sensitiveFilter;
 
     @Autowired
+    private LikeService likeService;
+
+    @Autowired
     private HostHolder hostHolder;
 
     //发布一条帖子
@@ -79,6 +83,14 @@ public class DiscussPostController implements EntityTypeConstant {
         User user = userService.selectById(discussPost.getUserId());
         model.addAttribute("user",user);
 
+        // 点赞数量
+        long likeCount = likeService.getLikeCount(ENTITY_TYPE_POST, discussPostId);
+        model.addAttribute("likeCount", likeCount);
+        // 点赞状态
+        int likeStatus = hostHolder.getUser() == null ? 0 :
+                likeService.getLikeStatus(hostHolder.getUser().getId(), ENTITY_TYPE_POST, discussPostId);
+        model.addAttribute("likeStatus", likeStatus);
+
         page.setLimit(5);
         // 总行数直接使用当前帖子的评论数量属性
         page.setPath("/discuss/detail/" + discussPostId);
@@ -97,6 +109,15 @@ public class DiscussPostController implements EntityTypeConstant {
                 // 作者
                 commentVo.put("user", userService.selectById(comment.getUserId()));
 
+                // 点赞数量
+                likeCount = likeService.getLikeCount(ENTITY_TYPE_COMMENT, comment.getId());
+                commentVo.put("likeCount", likeCount);
+                // 点赞状态
+                likeStatus = hostHolder.getUser() == null ? 0 :
+                        likeService.getLikeStatus(hostHolder.getUser().getId(), ENTITY_TYPE_COMMENT, comment.getId());
+                commentVo.put("likeStatus", likeStatus);
+
+
                 // 回复列表
                 List<Comment> replyList = commentService.findCommentsByEntity(
                         ENTITY_TYPE_COMMENT, comment.getId(), 0, Integer.MAX_VALUE);
@@ -112,6 +133,14 @@ public class DiscussPostController implements EntityTypeConstant {
                         // 回复目标，判断是普通回复还是给特定用户的回复
                         User target = reply.getTargetId() == 0 ? null : userService.selectById(reply.getTargetId());
                         replyVo.put("target", target);
+
+                        // 点赞数量
+                        likeCount = likeService.getLikeCount(ENTITY_TYPE_COMMENT, reply.getId());
+                        replyVo.put("likeCount", likeCount);
+                        // 点赞状态
+                        likeStatus = hostHolder.getUser() == null ? 0 :
+                                likeService.getLikeStatus(hostHolder.getUser().getId(), ENTITY_TYPE_COMMENT, reply.getId());
+                        replyVo.put("likeStatus", likeStatus);
 
                         replyVoList.add(replyVo);
                     }
