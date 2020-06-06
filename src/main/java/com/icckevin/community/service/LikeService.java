@@ -59,7 +59,7 @@ public class LikeService {
     // 查询某用户收到的赞
     public long getUserLikeCount(int userId){
         String key = RedisKeyUtil.getUserLikeKey(userId);
-        Long count = (Long)redisTemplate.opsForValue().get(key) ;
-        return count == null ? 0 : count.longValue();
+        Integer intCount = (Integer)redisTemplate.opsForValue().get(key) ;
+        return intCount == null ? 0 : intCount.longValue();
     }
 }

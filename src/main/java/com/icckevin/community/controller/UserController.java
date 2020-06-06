@@ -2,6 +2,7 @@ package com.icckevin.community.controller;
 
 import com.icckevin.community.annotation.LoginRequired;
 import com.icckevin.community.entity.User;
+import com.icckevin.community.service.LikeService;
 import com.icckevin.community.service.UserService;
 import com.icckevin.community.utils.CommunityUtil;
 import com.icckevin.community.utils.HostHolder;
@@ -39,6 +40,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private LikeService likeService;
 
     @Autowired
     private HostHolder hostHolder;
@@ -150,5 +154,18 @@ public class UserController {
             }
         }
         return "/site/operate-result";
+    }
+
+    @RequestMapping(value = "/profile/{userId}",method = RequestMethod.GET)
+    public String getProfilePage(@PathVariable int userId, Model model){
+        User user = userService.selectById(userId);
+        if(user == null){
+            throw new RuntimeException("该用户不存在!");
+        }
+        model.addAttribute("user",user);
+        long likeCount = likeService.getUserLikeCount(userId);
+        model.addAttribute("userLikeCount",likeCount);
+
+        return "/site/profile";
     }
 }
