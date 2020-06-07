@@ -2,9 +2,11 @@ package com.icckevin.community.controller;
 
 import com.icckevin.community.annotation.LoginRequired;
 import com.icckevin.community.entity.User;
+import com.icckevin.community.service.FollowService;
 import com.icckevin.community.service.LikeService;
 import com.icckevin.community.service.UserService;
 import com.icckevin.community.utils.CommunityUtil;
+import com.icckevin.community.utils.EntityTypeConstant;
 import com.icckevin.community.utils.HostHolder;
 import com.sun.org.apache.xpath.internal.operations.Mod;
 import org.apache.commons.lang3.StringUtils;
@@ -34,7 +36,7 @@ import java.io.OutputStream;
  **/
 @Controller
 @RequestMapping("/user")
-public class UserController {
+public class UserController implements EntityTypeConstant {
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
@@ -43,6 +45,9 @@ public class UserController {
 
     @Autowired
     private LikeService likeService;
+
+    @Autowired
+    private FollowService followService;
 
     @Autowired
     private HostHolder hostHolder;
@@ -165,6 +170,18 @@ public class UserController {
         model.addAttribute("user",user);
         long likeCount = likeService.getUserLikeCount(userId);
         model.addAttribute("userLikeCount",likeCount);
+
+        long followeeCount = followService.getFolloweeCount(userId, ENTITY_TYPE_USER);
+        long followerCount = followService.getFollowerCount(ENTITY_TYPE_USER, userId);
+        model.addAttribute("followeeCount",followeeCount);
+        model.addAttribute("followerCount",followerCount);
+
+        // 是否已关注
+        boolean hasFollowed = false;
+        if (hostHolder.getUser() != null) {
+            hasFollowed = followService.hasFollowed(hostHolder.getUser().getId(), ENTITY_TYPE_USER, userId);
+        }
+        model.addAttribute("hasFollowed", hasFollowed);
 
         return "/site/profile";
     }
