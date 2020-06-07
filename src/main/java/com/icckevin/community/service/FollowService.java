@@ -57,8 +57,8 @@ public class FollowService {
 
                 redisTemplate.multi();
 
-                redisTemplate.opsForZSet().remove(followeeKey);
-                redisTemplate.opsForZSet().remove(followerKey);
+                redisTemplate.opsForZSet().remove(followeeKey, entityId);
+                redisTemplate.opsForZSet().remove(followerKey,userId);
 
                 return redisTemplate.exec();
             }
