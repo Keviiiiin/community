@@ -4,6 +4,7 @@ import com.icckevin.community.entity.LoginTicket;
 import org.apache.ibatis.annotations.*;
 
 @Mapper
+@Deprecated
 public interface LoginTicketMapper {
     // 主键自增长
     @Insert({
