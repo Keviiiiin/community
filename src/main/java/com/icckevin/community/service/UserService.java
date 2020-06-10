@@ -8,6 +8,7 @@ import com.icckevin.community.utils.ActivationConstant;
 import com.icckevin.community.utils.CommunityUtil;
 import com.icckevin.community.utils.MailClient;
 import com.icckevin.community.utils.RedisKeyUtil;
+import com.sun.org.apache.regexp.internal.RE;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +28,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @description: 用户业务
@@ -57,7 +59,12 @@ public class UserService implements ActivationConstant {
 //    private LoginTicketMapper loginTicketMapper;
 
     public User selectById(int id){
-        return userMapper.selectById(id);
+//        return userMapper.selectById(id);
+        User user = getCache(id);
+        if(user == null){
+            user = initCache(id);
+        }
+        return user;
     }
 
     public Map<String,Object> register(User user){
@@ -117,6 +124,7 @@ public class UserService implements ActivationConstant {
             return ACTIVATION_REPEAT;
         else if(activationCode.equals(code)){
             userMapper.updateStatus(userId,1);
+            clearCache(userId);
             return ACTIVATION_SUCCESS;
         }
         else
@@ -186,14 +194,37 @@ public class UserService implements ActivationConstant {
 
 
     public int updateHeader(int userId, String headerUrl) {
-        return userMapper.updateHeader(userId, headerUrl);
+//        return userMapper.updateHeader(userId, headerUrl);
+        int rows = userMapper.updateHeader(userId, headerUrl);
+        clearCache(userId);
+        return rows;
     }
 
     public int updatePassword(int userId,String password){
-        return userMapper.updatePassword(userId,password);
+//        return userMapper.updatePassword(userId,password);
+        int rows = userMapper.updatePassword(userId,password);
+        clearCache(userId);
+        return rows;
     }
 
     public User selectByName(String username){
         return userMapper.selectByName(username);
+    }
+
+    private User getCache(int userId){
+        String userKey = RedisKeyUtil.getUserKey(userId);
+        return (User)redisTemplate.opsForValue().get(userKey);
+    }
+
+    private User initCache(int userId){
+        User user = userMapper.selectById(userId);
+        String userKey = RedisKeyUtil.getUserKey(userId);
+        redisTemplate.opsForValue().set(userKey,user,3600, TimeUnit.SECONDS);
+        return user;
+    }
+
+    private void clearCache(int userId){
+        String userKey = RedisKeyUtil.getUserKey(userId);
+        redisTemplate.delete(userKey);
     }
 }
